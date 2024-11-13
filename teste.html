@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Decomposição de Peça de Carne para 100kg</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background-color: #f8f9fa;
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            padding: 20px;
+            margin: 0;
+        }
+
+        h2, h3 {
+            color: #007bff;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        form {
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            width: 90%; /* Ajustando a largura para 90% */
+            max-width: 1200px;
+            margin: auto;
+        }
+
+        label {
+            display: block;
+            font-weight: bold;
+            margin-top: 15px;
+        }
+
+        input[type="number"],
+        input[type="text"] {
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            width: 100%; /* Garantindo que os inputs ocupem 100% da largura disponível */
+        }
+
+        #cuts div {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            flex-wrap: wrap; /* Para garantir que os campos se ajustem adequadamente */
+        }
+
+        #cuts div label {
+            width: 48%; /* Ajustando a largura para caber lado a lado */
+        }
+
+        #cuts div input {
+            width: 48%; /* Ajustando a largura para caber lado a lado */
+        }
+
+        button {
+            width: 100%;
+            background-color: #007bff;
+            color: #fff;
+            padding: 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 15px;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        .result {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        th, td {
+            padding: 15px;
+            border-bottom: 1px solid #ddd;
+            text-align: center;
+        }
+
+        th {
+            background-color: #007bff;
+            color: #fff;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: auto;
+            padding: 20px;
+        }
+
+        @media (max-width: 600px) {
+            h2, h3 {
+                font-size: 1.4em;
+            }
+
+            form, .result {
+                padding: 15px;
+            }
+
+            button {
+                font-size: 14px;
+                padding: 10px;
+            }
+
+            th, td {
+                padding: 12px;
+                font-size: 14px;
+            }
+
+            input[type="number"],
+            input[type="text"] {
+                width: 100%;
+            }
+
+            #cuts div {
+                flex-direction: column;
+                width: 100%;
+            }
+
+            #cuts div label,
+            #cuts div input {
+                width: 100%;
+            }
+        }
+
+        @media (min-width: 601px) {
+            #cuts div {
+                display: flex;
+                justify-content: space-between;
+                width: 100%;
+            }
+
+            #cuts div label,
+            #cuts div input {
+                width: 48%; /* Garantindo que os campos fiquem lado a lado */
+            }
+        }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Decomposição de Peça de Carne para 100kg</h2>
+        <form id="meatForm">
+            <label for="mainWeight">Peso da peça principal (kg):</label>
+            <input type="number" id="mainWeight" step="0.01" required>
+
+            <h3>Cortes (até 20 cortes)</h3>
+            <div id="cuts">
+                <!-- Campos para cortes serão adicionados dinamicamente -->
+            </div>
+
+            <button type="button" onclick="addCutField()">Adicionar Corte</button>
+            <button type="button" onclick="calculateConversion()">Calcular Decomposição para 100kg</button>
+        </form>
+
+        <div class="result" id="result">
+            <!-- Resultados aparecerão aqui -->
+        </div>
+
+        <!-- Botão para gerar o PDF -->
+        <button id="generatePdfBtn" style="display:none;" onclick="generatePDF()">Gerar PDF</button>
+    </div>
+
+    <!-- Incluindo a biblioteca jsPDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+    <script>
+        let cutCount = 0;
+
+        function addCutField() {
+            if (cutCount < 20) {
+                cutCount++;
+                const cutsDiv = document.getElementById('cuts');
+                const cutField = document.createElement('div');
+                cutField.id = `cut${cutCount}`;
+                cutField.innerHTML = `
+                    <label for="cutName${cutCount}">Nome do Corte ${cutCount}:</label>
+                    <input type="text" id="cutName${cutCount}" required>
+                    <label for="cutWeight${cutCount}">Peso (kg):</label>
+                    <input type="number" id="cutWeight${cutCount}" step="0.01" required>
+                `;
+                cutsDiv.appendChild(cutField);
+            } else {
+                alert("Você pode adicionar no máximo 20 cortes.");
+            }
+        }
+
+        function calculateConversion() {
+            const mainWeight = parseFloat(document.getElementById('mainWeight').value);
+            if (isNaN(mainWeight) || mainWeight <= 0) {
+                alert("Por favor, insira um peso válido para a peça principal.");
+                return;
+            }
+
+            const conversionFactor = 100 / mainWeight;
+            const results = [];
+            
+            for (let i = 1; i <= cutCount; i++) {
+                const cutName = document.getElementById(`cutName${i}`).value;
+                const cutWeight = parseFloat(document.getElementById(`cutWeight${i}`).value);
+                if (!cutName || isNaN(cutWeight) || cutWeight < 0) {
+                    alert(`Por favor, insira dados válidos para o corte ${i}.`);
+                    return;
+                }
+                const percentageWeight = (cutWeight * conversionFactor).toFixed(2);
+                results.push({ name: cutName, weight: percentageWeight });
+            }
+
+            displayResults(results);
+        }
+
+        function displayResults(results) {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = `<h3>Resultados para Peça de 100kg</h3>`;
+            const table = document.createElement('table');
+            table.innerHTML = `
+                <tr>
+                    <th>Corte</th>
+                    <th>Peso (%)</th>
+                </tr>
+            `;
+            results.forEach(result => {
+                const row = document.createElement('tr');
+                row.innerHTML = `<td>${result.name}</td><td>${result.weight} %</td>`;
+                table.appendChild(row);
+            });
+            resultDiv.appendChild(table);
+
+            // Exibe o botão para gerar o PDF
+            document.getElementById('generatePdfBtn').style.display = 'inline-block';
+        }
+
+        function generatePDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            const mainWeight = parseFloat(document.getElementById('mainWeight').value);
+            const conversionFactor = 100 / mainWeight;
+            const results = [];
+
+            for (let i = 1; i <= cutCount; i++) {
+                const cutName = document.getElementById(`cutName${i}`).value;
+                const cutWeight = parseFloat(document.getElementById(`cutWeight${i}`).value);
+                if (!cutName || isNaN(cutWeight) || cutWeight < 0) {
+                    continue;
+                }
+                const percentageWeight = (cutWeight * conversionFactor).toFixed(2);
+                results.push({ name: cutName, weight: percentageWeight });
+            }
+
+            doc.text(`Decomposição da Peça Principal: ${mainWeight}kg`, 20, 30);
+            let yPosition = 40;
+            results.forEach(result => {
+                doc.text(`${result.name}: ${result.weight} %`, 20, yPosition);
+                yPosition += 10;
+            });
+
+            doc.save("decomposicao_100kg.pdf");
+        }
+    </script>
+</body>
+</html>
